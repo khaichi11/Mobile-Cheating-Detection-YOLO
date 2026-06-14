@@ -1,30 +1,40 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Unit test untuk logika murni aplikasi (tanpa kamera/native plugin).
 
-import 'package:flutter/material.dart';
+import 'package:buatcomvis/models/detection_event.dart';
+import 'package:buatcomvis/models/gaze_direction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:buatcomvis/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('GazeDirection', () {
+    test('hanya "depan" yang dianggap jujur', () {
+      expect(GazeDirectionInfo.fromClassName('depan').isCheating, isFalse);
+      for (final c in ['atas', 'bawah', 'kiri', 'kanan']) {
+        expect(GazeDirectionInfo.fromClassName(c).isCheating, isTrue,
+            reason: '$c seharusnya indikasi mencontek');
+      }
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('pemetaan nama kelas tidak peka huruf besar/spasi', () {
+      expect(GazeDirectionInfo.fromClassName('  KIRI '), GazeDirection.kiri);
+      expect(GazeDirectionInfo.fromClassName('xxx'), GazeDirection.unknown);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('arah unknown tidak memicu mencontek', () {
+      expect(GazeDirection.unknown.isCheating, isFalse);
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('DetectionEvent', () {
+    test('round-trip JSON mempertahankan data', () {
+      final e = DetectionEvent(
+        direction: GazeDirection.kanan,
+        confidence: 0.83,
+        time: DateTime(2026, 6, 15, 10, 30, 0),
+      );
+      final back = DetectionEvent.fromJson(e.toJson());
+      expect(back.direction, GazeDirection.kanan);
+      expect(back.confidence, closeTo(0.83, 1e-9));
+      expect(back.time, e.time);
+    });
   });
 }
