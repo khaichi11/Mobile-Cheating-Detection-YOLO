@@ -4,21 +4,21 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/detection_event.dart';
+import '../models/exam_session.dart';
 import '../models/gaze_direction.dart';
 
-/// Riwayat kejadian terdeteksi mencontek + statistik.
+/// Riwayat kejadian (indikasi mencontek dan wajah hilang) beserta statistik.
 ///
-/// Disimpan persisten sebagai JSON di SharedPreferences. Statistik
-/// "sesi" dihitung dari kejadian sejak aplikasi dibuka; statistik total
-/// dihitung dari seluruh riwayat.
+/// Disimpan persisten sebagai JSON di SharedPreferences. Statistik "hari ini"
+/// dihitung sejak tengah malam; statistik total dari seluruh riwayat.
 class DetectionLog extends ChangeNotifier {
   static const _kKey = 'detection_events';
-  static const int _maxEvents = 500;
+  static const int _maxEvents = 1000;
 
   SharedPreferences? _prefs;
   final List<DetectionEvent> _events = [];
-  final DateTime sessionStart = DateTime.now();
 
+  /// Kejadian terbaru di depan.
   List<DetectionEvent> get events => List.unmodifiable(_events.reversed);
 
   Future<void> load() async {
@@ -55,12 +55,16 @@ class DetectionLog extends ChangeNotifier {
   }
 
   // ── Statistik ──────────────────────────────────────────────────────────────
+
   int get totalAll => _events.length;
 
-  int get totalSession =>
-      _events.where((e) => e.time.isAfter(sessionStart)).length;
+  int get totalToday {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day);
+    return _events.where((e) => !e.time.isBefore(midnight)).length;
+  }
 
-  /// Jumlah per arah (hanya arah mencontek).
+  /// Jumlah kejadian per arah.
   Map<GazeDirection, int> get byDirection {
     final m = <GazeDirection, int>{};
     for (final e in _events) {
@@ -71,16 +75,27 @@ class DetectionLog extends ChangeNotifier {
 
   DetectionEvent? get last => _events.isEmpty ? null : _events.last;
 
-  Duration get sessionDuration => DateTime.now().difference(sessionStart);
+  List<DetectionEvent> forSession(String id) =>
+      _events.reversed.where((e) => e.sessionId == id).toList();
 
-  /// Ekspor riwayat sebagai teks CSV (untuk dibagikan/disalin).
-  String toCsv() {
-    final b = StringBuffer('no,waktu,arah,confidence\n');
+  /// Ekspor riwayat sebagai teks CSV (untuk disalin/dibagikan).
+  String toCsv({List<ExamSession> sessions = const []}) {
+    final names = {for (final s in sessions) s.id: s.name};
+    final b = StringBuffer('no,waktu,sesi,arah,confidence,durasi_detik\n');
     var i = 1;
     for (final e in _events) {
-      b.writeln('${i++},${e.time.toIso8601String()},${e.direction.rawName},'
-          '${(e.confidence * 100).toStringAsFixed(1)}%');
+      final sesi = _csvField(names[e.sessionId] ?? '');
+      b.writeln('${i++},${e.time.toIso8601String()},$sesi,${e.direction.rawName},'
+          '${(e.confidence * 100).toStringAsFixed(1)}%,'
+          '${(e.duration.inMilliseconds / 1000).toStringAsFixed(1)}');
     }
     return b.toString();
+  }
+
+  static String _csvField(String v) {
+    if (v.contains(',') || v.contains('"') || v.contains('\n')) {
+      return '"${v.replaceAll('"', '""')}"';
+    }
+    return v;
   }
 }

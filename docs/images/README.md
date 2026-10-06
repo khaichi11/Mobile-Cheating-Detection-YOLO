@@ -1,18 +1,11 @@
-# Folder gambar dokumentasi
+# Gambar dokumentasi
 
-Letakkan tangkapan layar / gambar dokumentasi di folder ini, lalu **rename** sesuai
-nama berikut supaya otomatis muncul di `README.md` utama:
+Tangkapan layar `01-*.png` sampai `12-*.png` dibuat otomatis dari mode demo:
 
-| Nama file | Isi yang disarankan |
-|---|---|
-| `01-deteksi.png` | Layar utama deteksi (kamera + banner status) |
-| `02-mencontek.png` | Saat status "Terdeteksi Mencontek" (banner merah) |
-| `03-riwayat.png` | Layar Riwayat & Statistik |
-| `04-pengaturan.png` | Layar Pengaturan |
-| `05-tentang.png` | Layar Tentang |
-| `06-menu.png` | Menu navigasi (drawer) terbuka |
-| `banner.png` | Banner header (opsional, untuk bagian atas README) |
+```bash
+flutter drive --driver=test_driver/integration_test.dart \
+  --target=integration_test/screenshots_test.dart
+```
 
-Format yang didukung: `.png`, `.jpg`. Setelah file diletakkan dan di-rename,
-cukup `git add docs/images && git commit && git push`. Gambar akan langsung
-tampil di README tanpa perlu mengubah teks.
+- `alur-cerdas.png`: diagram alur kerja.
+- `wajah-dummy.jpg`: lima pose wajah dummy (orang fiktif) untuk mode demo.

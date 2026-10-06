@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Pengaturan aplikasi yang persisten (disimpan dengan SharedPreferences).
-///
-/// Memakai [ChangeNotifier] supaya UI ikut diperbarui begitu nilai berubah.
+import '../logic/proctor_engine.dart';
+
+/// Pengaturan aplikasi yang disimpan lokal (SharedPreferences).
 class SettingsService extends ChangeNotifier {
   static const _kConfidence = 'confidence_threshold';
   static const _kStability = 'stability_frames';
+  static const _kMinLookAway = 'min_look_away_ms';
+  static const _kAbsentAlert = 'absent_alert_sec';
   static const _kSound = 'sound_enabled';
   static const _kVibration = 'vibration_enabled';
   static const _kCooldown = 'alert_cooldown_sec';
@@ -14,28 +16,56 @@ class SettingsService extends ChangeNotifier {
   static const _kKeepAwake = 'keep_screen_awake';
   static const _kLogEvents = 'log_events';
   static const _kTeacherPin = 'teacher_pin';
+  static const _kSessionMinutes = 'session_minutes';
+
+  static const double defConfidence = 0.7;
+  static const int defStability = 2;
+  static const int defMinLookAwayMs = 800;
+  static const int defAbsentAlertSec = 5;
+  static const int defCooldown = 3;
+  static const int defSessionMinutes = 90;
 
   SharedPreferences? _prefs;
 
-  double confidenceThreshold = 0.7;
-  int stabilityFrames = 2;
+  double confidenceThreshold = defConfidence;
+  int stabilityFrames = defStability;
+
+  /// Lama menoleh minimum sebelum peringatan (milidetik).
+  int minLookAwayMs = defMinLookAwayMs;
+
+  /// Peringatan bila wajah tak terlihat selama ini (detik) saat sesi; 0 = mati.
+  int absentAlertSec = defAbsentAlertSec;
+
   bool soundEnabled = true;
   bool vibrationEnabled = true;
-  int alertCooldownSec = 3;
+  int alertCooldownSec = defCooldown;
   bool defaultFrontCamera = true;
   bool keepScreenAwake = true;
   bool logEvents = true;
 
-  /// PIN pengajar untuk membuka akses ke Riwayat, ekspor CSV, dan Pengaturan.
+  /// Durasi sesi bawaan (menit) yang diusulkan saat memulai sesi; 0 = tanpa batas.
+  int sessionMinutes = defSessionMinutes;
+
   /// Kosong = belum diatur (akan diminta membuat saat pertama dibutuhkan).
   String teacherPin = '';
   bool get hasTeacherPin => teacherPin.isNotEmpty;
+
+  /// Aturan deteksi dalam bentuk yang dipakai [ProctorEngine].
+  EngineConfig get engineConfig => EngineConfig(
+        confidenceThreshold: confidenceThreshold,
+        stabilityFrames: stabilityFrames,
+        minLookAway: Duration(milliseconds: minLookAwayMs),
+        absentAlert: Duration(seconds: absentAlertSec),
+        cooldown: Duration(seconds: alertCooldownSec),
+      );
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     final p = _prefs!;
     confidenceThreshold = p.getDouble(_kConfidence) ?? confidenceThreshold;
     stabilityFrames = p.getInt(_kStability) ?? stabilityFrames;
+    minLookAwayMs = p.getInt(_kMinLookAway) ?? minLookAwayMs;
+    absentAlertSec = p.getInt(_kAbsentAlert) ?? absentAlertSec;
     soundEnabled = p.getBool(_kSound) ?? soundEnabled;
     vibrationEnabled = p.getBool(_kVibration) ?? vibrationEnabled;
     alertCooldownSec = p.getInt(_kCooldown) ?? alertCooldownSec;
@@ -43,6 +73,7 @@ class SettingsService extends ChangeNotifier {
     keepScreenAwake = p.getBool(_kKeepAwake) ?? keepScreenAwake;
     logEvents = p.getBool(_kLogEvents) ?? logEvents;
     teacherPin = p.getString(_kTeacherPin) ?? teacherPin;
+    sessionMinutes = p.getInt(_kSessionMinutes) ?? sessionMinutes;
     notifyListeners();
   }
 
@@ -61,6 +92,18 @@ class SettingsService extends ChangeNotifier {
   void setStability(int v) {
     stabilityFrames = v;
     _prefs?.setInt(_kStability, v);
+    notifyListeners();
+  }
+
+  void setMinLookAway(int ms) {
+    minLookAwayMs = ms;
+    _prefs?.setInt(_kMinLookAway, ms);
+    notifyListeners();
+  }
+
+  void setAbsentAlert(int sec) {
+    absentAlertSec = sec;
+    _prefs?.setInt(_kAbsentAlert, sec);
     notifyListeners();
   }
 
@@ -100,14 +143,23 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSessionMinutes(int v) {
+    sessionMinutes = v;
+    _prefs?.setInt(_kSessionMinutes, v);
+    notifyListeners();
+  }
+
   void resetToDefaults() {
-    setConfidence(0.7);
-    setStability(2);
+    setConfidence(defConfidence);
+    setStability(defStability);
+    setMinLookAway(defMinLookAwayMs);
+    setAbsentAlert(defAbsentAlertSec);
     setSound(true);
     setVibration(true);
-    setCooldown(3);
+    setCooldown(defCooldown);
     setDefaultFrontCamera(true);
     setKeepScreenAwake(true);
     setLogEvents(true);
+    setSessionMinutes(defSessionMinutes);
   }
 }
