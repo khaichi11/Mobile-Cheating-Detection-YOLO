@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../services/app_services.dart';
 import '../services/teacher_gate.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
+import '../widgets/charts.dart';
 
-/// Layar pengaturan: ambang deteksi, suara, getar, kamera, PIN, dll.
+/// Pengaturan: aturan deteksi, sesi, peringatan, kamera, dan PIN.
 ///
-/// Hanya bisa diakses setelah pengajar membuka kunci (lihat [TeacherGate]).
+/// Hanya bisa dibuka setelah PIN pengajar dimasukkan (lihat [TeacherGate]).
 class SettingsScreen extends StatelessWidget {
   final AppServices services;
 
@@ -19,180 +21,261 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Pengaturan'),
         actions: [
-          IconButton(
-            tooltip: 'Kembalikan default',
-            icon: const Icon(Icons.restart_alt),
-            onPressed: settings.resetToDefaults,
+          TextButton(
+            onPressed: () {
+              settings.resetToDefaults();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Pengaturan dikembalikan ke bawaan')),
+              );
+            },
+            child: const Text('Bawaan'),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: ListenableBuilder(
         listenable: settings,
         builder: (context, _) => ListView(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 36),
           children: [
-            _sectionTitle('Deteksi'),
-            _sliderTile(
-              icon: Icons.speed,
+            const SectionLabel('Aturan deteksi'),
+            _SliderRow(
               title: 'Ambang keyakinan',
-              subtitle: 'Minimal confidence agar deteksi dihitung',
+              subtitle: 'Deteksi di bawah angka ini diabaikan.',
               value: settings.confidenceThreshold,
               min: 0.3,
               max: 0.95,
               divisions: 13,
-              display: '${(settings.confidenceThreshold * 100).toStringAsFixed(0)}%',
+              display: formatPercent(settings.confidenceThreshold),
               onChanged: settings.setConfidence,
             ),
-            _sliderTile(
-              icon: Icons.layers,
+            _SliderRow(
               title: 'Frame stabil',
-              subtitle: 'Jumlah frame berturut sebelum status berubah',
+              subtitle: 'Frame berturut-turut sebelum status berganti.',
               value: settings.stabilityFrames.toDouble(),
               min: 1,
-              max: 6,
-              divisions: 5,
+              max: 8,
+              divisions: 7,
               display: '${settings.stabilityFrames} frame',
               onChanged: (v) => settings.setStability(v.round()),
             ),
-            _sliderTile(
-              icon: Icons.hourglass_bottom,
+            _SliderRow(
+              title: 'Lama menoleh minimum',
+              subtitle: 'Menoleh lebih singkat dari ini tidak dicatat.',
+              value: settings.minLookAwayMs.toDouble(),
+              min: 0,
+              max: 3000,
+              divisions: 12,
+              display: settings.minLookAwayMs == 0
+                  ? 'langsung'
+                  : formatSeconds(Duration(milliseconds: settings.minLookAwayMs)),
+              onChanged: (v) => settings.setMinLookAway(v.round()),
+            ),
+            _SliderRow(
+              title: 'Wajah tidak terlihat',
+              subtitle: 'Selama sesi, dicatat bila wajah hilang selama ini.',
+              value: settings.absentAlertSec.toDouble(),
+              min: 0,
+              max: 30,
+              divisions: 6,
+              display: settings.absentAlertSec == 0 ? 'mati' : '${settings.absentAlertSec} dtk',
+              onChanged: (v) => settings.setAbsentAlert(v.round()),
+            ),
+            const SectionLabel('Sesi ujian'),
+            _SliderRow(
+              title: 'Durasi bawaan',
+              subtitle: 'Diusulkan saat memulai sesi. Sesi berakhir otomatis saat waktu habis.',
+              value: settings.sessionMinutes.toDouble(),
+              min: 0,
+              max: 180,
+              divisions: 12,
+              display: settings.sessionMinutes == 0 ? 'tanpa batas' : '${settings.sessionMinutes} mnt',
+              onChanged: (v) => settings.setSessionMinutes(v.round()),
+            ),
+            const SectionLabel('Peringatan'),
+            _SwitchRow(
+              title: 'Suara alarm',
+              subtitle: 'Bunyikan alarm saat ada kejadian.',
+              value: settings.soundEnabled,
+              onChanged: settings.setSound,
+            ),
+            _SwitchRow(
+              title: 'Getar',
+              subtitle: 'Getarkan perangkat saat ada kejadian.',
+              value: settings.vibrationEnabled,
+              onChanged: settings.setVibration,
+            ),
+            _SliderRow(
               title: 'Jeda antar peringatan',
-              subtitle: 'Cooldown agar alarm tak berbunyi terus',
+              subtitle: 'Agar alarm tidak berbunyi terus-menerus.',
               value: settings.alertCooldownSec.toDouble(),
               min: 0,
               max: 10,
               divisions: 10,
-              display: '${settings.alertCooldownSec} detik',
+              display: '${settings.alertCooldownSec} dtk',
               onChanged: (v) => settings.setCooldown(v.round()),
             ),
-            const Divider(),
-            _sectionTitle('Peringatan'),
-            _switchTile(
-              icon: Icons.volume_up,
-              title: 'Suara alarm',
-              subtitle: 'Bunyikan alarm saat terdeteksi mencontek',
-              value: settings.soundEnabled,
-              onChanged: settings.setSound,
-            ),
-            _switchTile(
-              icon: Icons.vibration,
-              title: 'Getar',
-              subtitle: 'Getarkan perangkat saat terdeteksi',
-              value: settings.vibrationEnabled,
-              onChanged: settings.setVibration,
-            ),
-            _switchTile(
-              icon: Icons.fact_check,
+            _SwitchRow(
               title: 'Catat riwayat',
-              subtitle: 'Simpan setiap kejadian ke Riwayat',
+              subtitle: 'Simpan setiap kejadian ke Riwayat.',
               value: settings.logEvents,
               onChanged: settings.setLogEvents,
             ),
-            const Divider(),
-            _sectionTitle('Kamera & Layar'),
-            _switchTile(
-              icon: Icons.camera_front,
+            const SectionLabel('Kamera dan layar'),
+            _SwitchRow(
               title: 'Mulai dengan kamera depan',
-              subtitle: 'Default kamera saat aplikasi dibuka',
+              subtitle: 'Berlaku saat aplikasi dibuka berikutnya.',
               value: settings.defaultFrontCamera,
               onChanged: settings.setDefaultFrontCamera,
             ),
-            _switchTile(
-              icon: Icons.screen_lock_portrait,
+            _SwitchRow(
               title: 'Layar tetap menyala',
-              subtitle: 'Cegah layar tidur selama pemantauan',
+              subtitle: 'Cegah layar tidur selama pemantauan.',
               value: settings.keepScreenAwake,
               onChanged: settings.setKeepScreenAwake,
             ),
-            const Divider(),
-            _sectionTitle('Keamanan'),
-            ListTile(
-              leading: const Icon(Icons.password, color: AppColors.textSecondary),
-              title: const Text('PIN Pengajar',
-                  style: TextStyle(color: AppColors.textPrimary)),
-              subtitle: Text(
-                settings.hasTeacherPin
-                    ? 'Tap untuk mengganti PIN'
-                    : 'Belum diatur — tap untuk membuat',
-                style: const TextStyle(color: AppColors.textSecondary),
-              ),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            const SectionLabel('Keamanan'),
+            InkWell(
               onTap: () => TeacherGate.changePin(context, services),
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppColors.line)),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('PIN pengajar',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 2),
+                          Text(
+                            settings.hasTeacherPin
+                                ? 'Ketuk untuk mengganti PIN.'
+                                : 'Belum diatur. Ketuk untuk membuat.',
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text('Ubah', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _sectionTitle(String t) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Text(t.toUpperCase(),
-            style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1)),
-      );
+class _SwitchRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
-  Widget _switchTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return SwitchListTile(
-      secondary: Icon(icon, color: AppColors.textSecondary),
-      title: Text(title, style: const TextStyle(color: AppColors.textPrimary)),
-      subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textSecondary)),
-      value: value,
-      onChanged: onChanged,
+  const _SwitchRow({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.line)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                ],
+              ),
+            ),
+            Switch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
     );
   }
+}
 
-  Widget _sliderTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required double value,
-    required double min,
-    required double max,
-    required int divisions,
-    required String display,
-    required ValueChanged<double> onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+class _SliderRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final String display;
+  final ValueChanged<double> onChanged;
+
+  const _SliderRow({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.display,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
+      padding: const EdgeInsets.only(top: 14, bottom: 2),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: AppColors.textSecondary),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: AppColors.textPrimary)),
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
                     Text(subtitle,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 12)),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
-              Text(display,
-                  style: const TextStyle(
-                      color: AppColors.primary, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 12),
+              Text(display, style: monoStyle(size: 15, weight: FontWeight.w600)),
             ],
           ),
-          Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged,
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            ),
+            child: Slider(
+              value: value.clamp(min, max),
+              min: min,
+              max: max,
+              divisions: divisions,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),

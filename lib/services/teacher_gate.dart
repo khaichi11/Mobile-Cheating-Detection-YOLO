@@ -15,16 +15,19 @@ import 'app_services.dart';
 class TeacherGate {
   /// Pastikan akses pengajar. Mengembalikan true bila boleh lanjut.
   static Future<bool> ensureAccess(BuildContext context, AppServices s) async {
-    if (s.teacherUnlocked) return true;
+    if (s.teacherUnlocked) {
+      s.unlockTeacher(); // perpanjang selama pengajar masih aktif
+      return true;
+    }
 
     if (!s.settings.hasTeacherPin) {
       final created = await _createPinDialog(context, s);
-      if (created) s.teacherUnlocked = true;
+      if (created) s.unlockTeacher();
       return created;
     }
 
     final ok = await _enterPinDialog(context, s);
-    if (ok) s.teacherUnlocked = true;
+    if (ok) s.unlockTeacher();
     return ok;
   }
 
