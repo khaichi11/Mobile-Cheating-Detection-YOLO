@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-feature android:name="android.hardware.camera" android:required="true"/>
     <application
-        android:label="Deteksi Mencontek"
+        android:label="CERDAS"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
