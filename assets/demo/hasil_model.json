@@ -1,0 +1,99 @@
+{
+  "model": "gaze_yolo12n_320.tflite",
+  "imageSize": [
+    768,
+    1707
+  ],
+  "shots": {
+    "atas": [
+      {
+        "className": "atas",
+        "confidence": 0.9216,
+        "box": [
+          0.2847,
+          0.257,
+          0.8241,
+          0.536
+        ]
+      },
+      {
+        "className": "kanan",
+        "confidence": 0.4999,
+        "box": [
+          0.2372,
+          0.0005,
+          1.0,
+          0.2371
+        ]
+      }
+    ],
+    "depan": [
+      {
+        "className": "depan",
+        "confidence": 0.9077,
+        "box": [
+          0.2752,
+          0.3217,
+          0.7622,
+          0.6085
+        ]
+      },
+      {
+        "className": "bawah",
+        "confidence": 0.4432,
+        "box": [
+          0.2706,
+          0.3247,
+          0.7569,
+          0.6061
+        ]
+      },
+      {
+        "className": "kanan",
+        "confidence": 0.3457,
+        "box": [
+          0.2323,
+          0.0003,
+          0.8153,
+          0.2445
+        ]
+      }
+    ],
+    "kanan": [
+      {
+        "className": "kanan",
+        "confidence": 0.9027,
+        "box": [
+          0.1588,
+          0.3029,
+          0.7035,
+          0.6124
+        ]
+      }
+    ],
+    "kiri": [
+      {
+        "className": "kiri",
+        "confidence": 0.7774,
+        "box": [
+          0.3877,
+          0.3055,
+          0.8763,
+          0.6181
+        ]
+      }
+    ],
+    "bawah": [
+      {
+        "className": "bawah",
+        "confidence": 0.8696,
+        "box": [
+          0.2584,
+          0.5475,
+          0.7759,
+          0.8244
+        ]
+      }
+    ]
+  }
+}
