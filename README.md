@@ -1,298 +1,293 @@
-# Deteksi Mencontek — Aplikasi Mobile (Flutter + YOLO)
+<p align="center">
+  <img src="assets/brand/logo.png" alt="Logo CERDAS" width="104">
+</p>
 
-Aplikasi Android untuk **memantau arah pandang peserta ujian secara real-time** dan
-menandai indikasi mencontek. Model YOLO (TensorFlow Lite) berjalan **langsung di
-perangkat** (luring/offline) — tidak ada gambar yang dikirim ke server.
+<h1 align="center">CERDAS</h1>
 
-Saat pandangan peserta menjauh dari layar (menengadah, menunduk, menoleh kiri/kanan)
-secara stabil, aplikasi memunculkan peringatan visual, **membunyikan alarm**, dan
-**menggetarkan perangkat**, lalu mencatat kejadiannya ke riwayat.
+<p align="center">
+  <b>Cheating Examination Recognition &amp; Detection · YOLO-based</b><br>
+  Deteksi indikasi mencontek dari arah kepala, langsung di perangkat Android.<br>
+  <i>On-device exam proctoring that reads head direction with YOLO.</i>
+</p>
 
-> Ditujukan untuk pengawasan ujian yang sah/berizin dan kebutuhan edukasi. Gunakan
-> secara bertanggung jawab dan transparan kepada peserta.
+<p align="center">
+  <a href="#bahasa-indonesia">Bahasa Indonesia</a> · <a href="#english">English</a>
+</p>
 
-<!-- Letakkan banner di docs/images/banner.png (opsional) -->
-<!-- ![Banner](docs/images/banner.png) -->
-
----
-
-## Tangkapan Layar
-
-> Taruh gambar di folder [`docs/images/`](docs/images/) lalu rename sesuai nama di
-> bawah — gambar akan otomatis tampil di sini. Panduan ada di
-> [docs/images/README.md](docs/images/README.md).
-
-| Deteksi | Terdeteksi Mencontek | Riwayat & Statistik |
-|---|---|---|
-| ![Deteksi](docs/images/01-deteksi.png) | ![Mencontek](docs/images/02-mencontek.png) | ![Riwayat](docs/images/03-riwayat.png) |
-
-| Pengaturan | Tentang | Menu |
-|---|---|---|
-| ![Pengaturan](docs/images/04-pengaturan.png) | ![Tentang](docs/images/05-tentang.png) | ![Menu](docs/images/06-menu.png) |
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/images/05-sesi-fokus.png" width="180" alt="Sesi berjalan"><br><sub>Sesi berjalan</sub></td>
+    <td align="center" width="25%"><img src="docs/images/04-peringatan-menoleh.png" width="180" alt="Peringatan menoleh"><br><sub>Peringatan menoleh</sub></td>
+    <td align="center" width="25%"><img src="docs/images/07-ringkasan-sesi.png" width="180" alt="Ringkasan sesi"><br><sub>Ringkasan sesi</sub></td>
+    <td align="center" width="25%"><img src="docs/images/10-riwayat-sesi.png" width="180" alt="Riwayat"><br><sub>Riwayat</sub></td>
+  </tr>
+</table>
 
 ---
 
-## Daftar Isi
+## Bahasa Indonesia
 
-1. [Fitur Utama](#1-fitur-utama)
-2. [Alur Penggunaan (Guru & Siswa)](#2-alur-penggunaan-guru--siswa)
-3. [Cara Kerja](#3-cara-kerja)
-4. [Kelas yang Dikenali](#4-kelas-yang-dikenali)
-5. [Menu & Layar Aplikasi](#5-menu--layar-aplikasi)
-6. [Prasyarat](#6-prasyarat)
-7. [Instalasi & Menjalankan](#7-instalasi--menjalankan)
-8. [Build APK](#8-build-apk)
-9. [Konfigurasi (Pengaturan dalam Aplikasi)](#9-konfigurasi-pengaturan-dalam-aplikasi)
-10. [Model YOLO](#10-model-yolo)
-11. [Struktur Proyek](#11-struktur-proyek)
-12. [Izin (Permissions)](#12-izin-permissions)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Kredit](#14-kredit)
+### Daftar isi
 
----
+1. [Tentang](#tentang)
+2. [Fitur](#fitur)
+3. [Kinerja: target 30 FPS](#kinerja-target-30-fps)
+4. [Cara kerja](#cara-kerja)
+5. [Aturan sesi](#aturan-sesi)
+6. [Alur penggunaan](#alur-penggunaan)
+7. [Mode demo dan wajah dummy](#mode-demo-dan-wajah-dummy)
+8. [Pengaturan](#pengaturan)
+9. [Menjalankan dan build](#menjalankan-dan-build)
+10. [Tangkapan layar](#tangkapan-layar)
+11. [Struktur proyek](#struktur-proyek)
+12. [Privasi dan etika](#privasi-dan-etika)
+13. [Lisensi dan kredit](#lisensi-dan-kredit)
 
-## 1. Fitur Utama
+### Tentang
+
+CERDAS memantau arah kepala peserta ujian lewat kamera depan. Model YOLOv12n
+mengenali lima arah: **depan** (fokus) dan **atas, bawah, kiri, kanan**
+(indikasi menoleh). Bila peserta menoleh lebih lama dari batas yang diatur
+pengajar, aplikasi membunyikan alarm, menggetarkan perangkat, dan mencatat
+kejadian. Semua inferensi berjalan di perangkat dan tanpa internet.
+
+### Fitur
 
 | Fitur | Keterangan |
 |---|---|
-| Deteksi arah pandang real-time | Model YOLO mengenali 5 arah kepala langsung dari kamera |
-| Peringatan multi-mode | Banner visual + alarm suara + getar saat terdeteksi mencontek |
-| Pencatatan riwayat | Setiap kejadian (arah, confidence, waktu) tersimpan otomatis |
-| Statistik sesi | Total peringatan, durasi sesi, rincian per arah, kejadian terakhir |
-| Ekspor CSV | Salin seluruh riwayat sebagai CSV untuk dianalisis di luar aplikasi |
-| Akses pengajar (PIN) | Riwayat, ekspor CSV, dan Pengaturan dikunci PIN agar peserta tak bisa mengubahnya |
-| Pengaturan lengkap | Atur ambang keyakinan, frame stabil, jeda alarm, suara, getar, kamera |
-| Menu navigasi | Drawer untuk berpindah antara Deteksi, Riwayat, Pengaturan, Tentang |
-| Layar tetap menyala | Cegah layar tidur selama pemantauan ujian |
-| Berjalan luring | Semua inferensi di perangkat; privasi terjaga, tanpa internet |
+| Deteksi real-time | YOLOv12n (LiteRT, GPU bila tersedia) membaca arah kepala dari kamera depan |
+| Oval panduan wajah | Oval di tengah layar menunjukkan posisi wajah; warnanya hijau saat fokus, oranye saat menoleh. Wajah tidak tertutup kotak atau label |
+| Sesi ujian | Dimulai pengajar dengan PIN, punya durasi, dan berakhir otomatis saat waktu habis |
+| Garis waktu 90 detik | Pita warna di panel bawah: hijau fokus, oranye menoleh, abu-abu wajah hilang |
+| Aturan lama menoleh | Menoleh sekilas tidak dihitung; batasnya diatur di Pengaturan (bawaan 0,8 dtk) |
+| Kejadian lain | Wajah tidak terlihat, ada wajah lain di kamera, dan aplikasi ditinggalkan ikut dicatat |
+| Peringatan | Tepi layar oranye, alarm suara, getar; jeda antar alarm bisa diatur |
+| Ringkasan sesi | Persentase fokus, menoleh terlama, lama aplikasi ditinggalkan, tabel kejadian, salin CSV |
+| Riwayat | Daftar sesi dan kejadian per tanggal, ekspor CSV |
+| Akses pengajar (PIN) | Mulai/akhiri sesi, Riwayat, Pengaturan, dan ganti kamera saat sesi butuh PIN |
+| Mode siaga | Di luar sesi: deteksi tampil untuk mengatur posisi HP, tanpa alarm dan tanpa catatan |
+| Mode demo | Memutar foto wajah dummy, model dijalankan sungguhan, tanpa kamera |
+| Info teknis | FPS, waktu pra-proses, inferensi, pasca-proses, jumlah frame |
+| Luring | Tidak ada server; gambar kamera tidak disimpan dan tidak dikirim |
 
----
+### Kinerja: target 30 FPS
 
-## 2. Alur Penggunaan (Guru & Siswa)
+Model yang dipakai sudah ringan: masukan 320×320 dan sekitar **9 ms per frame**
+di CPU desktop. Versi lama lambat karena alur aplikasinya, bukan modelnya:
 
-Aplikasi dirancang untuk dipegang **di sisi peserta** selama ujian, tetapi data
-sensitif tetap aman karena dikunci PIN pengajar.
+| Penyebab di versi lama | Perbaikan |
+|---|---|
+| Plugin `ultralytics_yolo` 0.1.39 mengubah tiap frame YUV → JPEG (kualitas 100) → decode lagi | Naik ke 0.6.15: frame RGBA langsung, LiteRT 2.x dengan GPU |
+| Seluruh layar di-`setState` setiap frame dan setiap metrik FPS | Hasil masuk ke `ProctorEngine`; UI memakai `ValueNotifier` dan hanya diperbarui saat status berubah (maks. ±10×/dtk) |
+| Kamera depan dipasang dengan `switchCamera` + `switchModel` (memuat ulang model) | Kamera depan dipilih sejak awal (`lensFacing`) |
+| Kamera tetap berjalan saat layar lain dibuka | Kamera dijeda saat pengajar membuka Riwayat atau Pengaturan, dan saat aplikasi di latar belakang |
 
-**Sebelum ujian (pengajar):**
+FPS sebenarnya tergantung perangkat dan dibatasi kecepatan kamera (umumnya
+30 fps). Lihat angka FPS di pojok kanan atas atau buka **Info teknis**.
 
-1. Buka aplikasi, ketuk ikon menu, pilih **Pengaturan** (akan diminta membuat
-   **PIN Pengajar** saat pertama kali).
-2. Atur ambang keyakinan, suara, getar, dan sensitivitas bila perlu.
-3. Ketuk **Kunci mode pengajar** dari menu agar kembali ke mode peserta.
+### Cara kerja
 
-**Selama ujian (peserta):**
+<p align="center"><img src="docs/images/alur-cerdas.png" alt="Alur kerja CERDAS" width="820"></p>
 
-4. Perangkat menampilkan kamera + status deteksi. Peserta **tidak bisa** membuka
-   Riwayat, mengekspor data, atau mengubah Pengaturan tanpa PIN.
-5. Saat pandangan menjauh dari layar secara stabil, aplikasi memberi peringatan
-   (banner + alarm + getar) dan mencatat kejadian.
+Logika keputusan ada di [`lib/logic/proctor_engine.dart`](lib/logic/proctor_engine.dart),
+ditulis tanpa ketergantungan pada plugin sehingga bisa diuji
+([`test/proctor_engine_test.dart`](test/proctor_engine_test.dart)):
 
-**Setelah ujian (pengajar):**
+- **Stabilisasi**: status baru berganti setelah N frame berturut-turut sepakat (bawaan 2).
+  Wajah yang hilang satu-dua frame tidak langsung dianggap hilang (jeda 0,3 dtk).
+- **Lama menoleh**: kejadian dicatat bila menoleh berlangsung minimal 0,8 dtk.
+  Satu rentang menoleh dicatat sekali; alarm diulang tiap jeda selama masih menoleh.
+- **Wajah hilang**: hanya saat sesi berjalan, setelah 5 dtk (bisa dimatikan).
 
-6. Buka menu, pilih **Riwayat & Statistik**, masukkan **PIN Pengajar**.
-7. Tinjau daftar kejadian dan rekap per arah, lalu **Salin CSV** untuk dokumentasi.
-8. Kunci kembali bila perangkat akan dipakai peserta lain.
-
-> Ekspor CSV, hapus riwayat, dan seluruh Pengaturan hanya bisa diakses dalam
-> **mode pengajar**. Mode terkunci kembali otomatis setiap aplikasi ditutup.
-
----
-
-## 3. Cara Kerja
-
-```
-Kamera  ->  YOLOView (ultralytics_yolo)  ->  Deteksi arah kepala per frame
-                                              |
-                                              v
-                              Penstabilan (N frame berturut sama)
-                                              |
-                 +----------------------------+----------------------------+
-                 v                                                         v
-          arah = "depan"                                  arah = atas/bawah/kiri/kanan
-          -> status JUJUR                                  -> status MENCONTEK
-                                                           -> alarm + getar (dengan cooldown)
-                                                           -> catat ke Riwayat
-```
-
-- **Penstabilan**: status hanya berubah setelah arah yang sama muncul beberapa frame
-  berturut-turut (default 2). Mengurangi kedip akibat satu frame meleset.
-- **Cooldown alarm**: setelah berbunyi, alarm tidak berbunyi lagi selama beberapa detik
-  (default 3) agar tidak terus-menerus.
-- **Ambang keyakinan**: deteksi di bawah ambang (default 70%) dianggap "wajah tidak
-  terdeteksi", bukan mencontek.
-
----
-
-## 4. Kelas yang Dikenali
-
-Model dilatih untuk lima arah pandang kepala:
-
-| Kelas (model) | Label aplikasi | Status |
+| Kelas model | Label | Status |
 |---|---|---|
-| `depan` | Menghadap depan | Jujur |
-| `atas` | Menengadah ke atas | Indikasi mencontek |
-| `bawah` | Menunduk ke bawah | Indikasi mencontek |
-| `kiri` | Menoleh ke kiri | Indikasi mencontek |
-| `kanan` | Menoleh ke kanan | Indikasi mencontek |
+| `depan` | Fokus ke depan | Fokus |
+| `atas` | Menengadah ke atas | Indikasi |
+| `bawah` | Menunduk ke bawah | Indikasi |
+| `kiri` | Menoleh ke kiri | Indikasi |
+| `kanan` | Menoleh ke kanan | Indikasi |
 
-Pemetaan ini didefinisikan di [`lib/models/gaze_direction.dart`](lib/models/gaze_direction.dart).
-Hanya `depan` yang dianggap jujur.
+### Aturan sesi
 
----
+Aplikasi dipegang di meja peserta, jadi aturan dibuat supaya peserta tidak bisa
+mengakali pemantauan:
 
-## 5. Menu & Layar Aplikasi
+| Aturan | Alasan |
+|---|---|
+| Memulai sesi wajib PIN pengajar, sekaligus menentukan durasi ujian | Peserta tidak bisa memulai ulang sesi untuk menghapus catatan |
+| Sesi berakhir otomatis saat waktu habis; mengakhiri lebih awal wajib PIN, juga di mode demo | Peserta tidak bisa menghentikan pemantauan sendiri |
+| Tombol kembali Android dikunci selama sesi | Mencegah keluar tanpa sengaja |
+| Meninggalkan aplikasi dicatat sebagai kejadian beserta lamanya | Mencegah membuka browser atau chat untuk mencari jawaban |
+| Dua wajah terpisah selama lebih dari 1,5 dtk dicatat sebagai "Ada wajah lain" | Indikasi ada yang membantu |
+| Ganti kamera dan mode demo dikunci selama sesi | Peserta tidak bisa mengalihkan kamera |
+| Akses pengajar tertutup lagi 60 dtk setelah PIN dimasukkan, dan saat sesi dimulai | Kunci tidak tertinggal terbuka |
+| Di luar sesi aplikasi dalam mode siaga, tanpa alarm dan catatan | Pengajar bisa mengatur posisi HP tanpa membuat riwayat palsu |
 
-Menu dibuka lewat ikon menu di kiri atas layar deteksi. Ikon gembok menandai
-layar yang memerlukan PIN pengajar.
+### Alur penggunaan
 
-| Layar | Akses | Isi |
+**Sebelum ujian (pengajar)**
+1. Letakkan HP di depan peserta. Dalam mode siaga, atur posisinya sampai wajah berada di dalam oval.
+2. (Opsional) Buka menu → **Pengaturan** untuk mengatur ambang, lama menoleh, dan durasi bawaan.
+3. Tekan **Mulai sesi ujian**, masukkan PIN (dibuat saat pertama kali), isi nama sesi dan durasi.
+
+**Selama ujian (peserta)**
+4. Layar menampilkan kamera, oval wajah, status, sisa waktu, dan jumlah kejadian. Peserta tidak bisa
+   mengakhiri sesi, membuka Riwayat atau Pengaturan, mengganti kamera, atau keluar dengan tombol kembali.
+
+**Setelah ujian (pengajar)**
+5. Sesi berakhir otomatis saat waktu habis, atau tekan **Akhiri sesi** dan masukkan PIN.
+6. Ringkasan sesi langsung tampil. Semua sesi bisa dibuka lagi di **Riwayat**, lalu disalin sebagai CSV.
+
+### Mode demo dan wajah dummy
+
+<p align="center"><img src="docs/images/wajah-dummy.jpg" alt="Lima pose wajah dummy" width="680"></p>
+
+Mode demo (menu → **Mode demo**) memutar lima foto secara bergantian dan
+menjalankan model yang sama dengan kamera lewat `YOLO.predict`. Tujuannya untuk
+presentasi, mencoba aplikasi tanpa peserta, dan membuat tangkapan layar.
+
+- Orang di foto **fiktif**, dibuat oleh pemilik proyek dengan Google Gemini, bukan foto orang nyata.
+- Kolase asli dipotong per pose lalu diperbesar 4× dengan Real-ESRGAN agar tidak pecah di layar.
+- Keyakinan model pada foto final: depan 0,91 · kiri 0,78 · kanan 0,90 · atas 0,92 · bawah 0,87
+  (lihat [`assets/demo/hasil_model.json`](assets/demo/hasil_model.json)).
+- Skrip lengkapnya ada di [`tools/make_demo_faces.py`](tools/make_demo_faces.py).
+
+### Pengaturan
+
+| Pengaturan | Bawaan | Fungsi |
 |---|---|---|
-| **Deteksi** | Terbuka | Kamera langsung, bingkai wajah, indikator FPS, banner status, tombol ganti kamera, toggle debug |
-| **Riwayat & Statistik** | PIN pengajar | Kartu statistik, rincian per arah, daftar kejadian, salin CSV, hapus riwayat |
-| **Pengaturan** | PIN pengajar | Ambang keyakinan, frame stabil, jeda alarm, suara, getar, kamera default, layar tetap menyala, ubah PIN |
-| **Tentang** | Terbuka | Penjelasan cara kerja, daftar kelas, catatan privasi, kredit |
-
----
-
-## 6. Prasyarat
-
-- **Flutter SDK** 3.41+ (Dart 3.9+) — diuji dengan Flutter 3.41.1 stable.
-- **Android SDK** + perangkat/emulator Android (disarankan perangkat fisik berkamera).
-- Android **minSdk** mengikuti default Flutter; GPU delegate dipakai bila tersedia.
-
-Cek instalasi:
-
-```bash
-flutter --version
-flutter doctor
-```
-
----
-
-## 7. Instalasi & Menjalankan
-
-```bash
-# 1) Masuk ke folder proyek
-cd Comvis/Mobile-Cheating-Detection-YOLO
-
-# 2) Ambil dependensi
-flutter pub get
-
-# 3) Hubungkan perangkat Android (USB debugging) lalu cek
-flutter devices
-
-# 4) Jalankan
-flutter run
-```
-
-Aplikasi akan meminta izin kamera saat pertama dibuka. Berikan izin agar deteksi aktif.
-
----
-
-## 8. Build APK
-
-```bash
-# APK debug (cepat, untuk uji)
-flutter build apk --debug
-
-# APK release (terbagi per-ABI, ukuran lebih kecil)
-flutter build apk --release --split-per-abi
-```
-
-Hasil ada di `build/app/outputs/flutter-apk/`.
-
----
-
-## 9. Konfigurasi (Pengaturan dalam Aplikasi)
-
-Semua dapat diubah di layar **Pengaturan** dan tersimpan otomatis (SharedPreferences):
-
-| Pengaturan | Default | Fungsi |
-|---|---|---|
-| Ambang keyakinan | 70% | Confidence minimal agar deteksi dihitung |
-| Frame stabil | 2 | Jumlah frame berturut sebelum status berubah |
-| Jeda antar peringatan | 3 dtk | Cooldown agar alarm tak berbunyi terus |
-| Suara alarm | aktif | Bunyikan alarm saat terdeteksi mencontek |
-| Getar | aktif | Getarkan perangkat saat terdeteksi |
-| Catat riwayat | aktif | Simpan setiap kejadian ke Riwayat |
-| Mulai dengan kamera depan | aktif | Kamera default saat aplikasi dibuka |
+| Ambang keyakinan | 70% | Deteksi di bawah angka ini diabaikan |
+| Frame stabil | 2 | Frame berturut-turut sebelum status berganti |
+| Lama menoleh minimum | 0,8 dtk | Menoleh lebih singkat tidak dianggap kejadian |
+| Wajah tidak terlihat | 5 dtk | Selama sesi; 0 = mati |
+| Durasi bawaan | 90 mnt | Diusulkan saat memulai sesi; 0 = tanpa batas |
+| Suara alarm / Getar | aktif | Jenis peringatan |
+| Jeda antar peringatan | 3 dtk | Agar alarm tidak berbunyi terus |
+| Catat riwayat | aktif | Simpan kejadian ke Riwayat |
+| Mulai dengan kamera depan | aktif | Kamera bawaan saat aplikasi dibuka |
 | Layar tetap menyala | aktif | Cegah layar tidur selama pemantauan |
 
----
+### Menjalankan dan build
 
-## 10. Model YOLO
+Butuh Flutter 3.41+ (Dart 3.9+) dan perangkat Android berkamera (minSdk 24).
 
-- **File**: `android/app/src/main/assets/best_float16(revfix).tflite`
-- **Tugas**: `detect` (deteksi arah kepala)
-- **Kelas**: `atas`, `depan`, `kanan`, `kiri`, `bawah`
-- **Pelatihan**: lihat [`Training_Yolo/`](Training_Yolo/) (notebook YOLOv12n).
+```bash
+flutter pub get
+flutter run                                   # jalankan di perangkat
+flutter test                                  # 21 uji unit dan widget
+flutter build apk --release --split-per-abi   # APK per arsitektur
+```
 
-**Mengganti model:** taruh `.tflite` baru di folder `assets` Android, lalu ubah nama
-file pada konstanta `_model` di [`lib/screens/detection_screen.dart`](lib/screens/detection_screen.dart).
-Jika nama kelas berubah, sesuaikan pemetaan di
-[`lib/models/gaze_direction.dart`](lib/models/gaze_direction.dart).
+Model: [`assets/models/gaze_yolo12n_320.tflite`](assets/models/)
+(kelas dan ukuran masukan dibaca dari metadata model). Model lama yang tidak dipakai
+disimpan di [`Training_Yolo/models/`](Training_Yolo/models/) bersama notebook pelatihan.
+Saat ini hanya Android yang didukung; iOS membutuhkan model Core ML.
 
----
+### Tangkapan layar
 
-## 11. Struktur Proyek
+Semua tangkapan layar dibuat otomatis dari mode demo di emulator:
+
+```bash
+flutter drive --driver=test_driver/integration_test.dart \
+  --target=integration_test/screenshots_test.dart
+```
+
+| | | | |
+|---|---|---|---|
+| <img src="docs/images/01-siaga.png" width="170"> | <img src="docs/images/02-pin-pengajar.png" width="170"> | <img src="docs/images/03-mulai-sesi.png" width="170"> | <img src="docs/images/04-peringatan-menoleh.png" width="170"> |
+| Mode siaga | PIN pengajar | Mulai sesi | Peringatan menoleh |
+| <img src="docs/images/05-sesi-fokus.png" width="170"> | <img src="docs/images/06-info-teknis.png" width="170"> | <img src="docs/images/07-ringkasan-sesi.png" width="170"> | <img src="docs/images/08-ringkasan-kejadian.png" width="170"> |
+| Sesi berjalan | Info teknis | Ringkasan sesi | Kejadian sesi |
+| <img src="docs/images/09-menu.png" width="170"> | <img src="docs/images/10-riwayat-sesi.png" width="170"> | <img src="docs/images/12-pengaturan.png" width="170"> | <img src="docs/images/13-tentang.png" width="170"> |
+| Menu | Riwayat | Pengaturan | Tentang |
+
+### Struktur proyek
 
 ```
 lib/
-  main.dart                      Entry point, tema, inisialisasi service
-  theme/
-    app_theme.dart               Palet warna & ThemeData (tanpa emoji)
-  models/
-    gaze_direction.dart          5 kelas arah + label/ikon/status
-    detection_event.dart         Satu kejadian (arah, confidence, waktu)
-  services/
-    app_services.dart            Wadah service bersama
-    settings_service.dart        Pengaturan persisten (SharedPreferences)
-    alarm_service.dart           Alarm suara (audioplayers) + getar (haptics)
-    detection_log.dart           Riwayat + statistik, persisten
-  screens/
-    detection_screen.dart        Layar utama: kamera + YOLO + status
-    history_screen.dart          Riwayat & statistik
-    settings_screen.dart         Pengaturan
-    about_screen.dart            Tentang
-  widgets/
-    app_drawer.dart              Menu navigasi
-    status_banner.dart           Banner status bawah
-    stat_card.dart               Kartu statistik
-assets/
-  sounds/alarm.wav               Nada alarm (dibuat oleh tools/gen_alarm.py)
-tools/
-  gen_alarm.py                   Skrip pembuat alarm.wav
-docs/images/                     Tempat tangkapan layar untuk README
+  main.dart                     Titik masuk, tema, layanan
+  logic/proctor_engine.dart     Stabilisasi, aturan menoleh, wajah hilang, durasi sesi
+  models/                       Arah pandang, kejadian, sesi ujian
+  services/                     Pengaturan, riwayat, sesi, alarm, mode demo, PIN pengajar
+  screens/                      Kamera, ringkasan sesi, riwayat, pengaturan, tentang
+  widgets/                      Oval wajah, garis waktu, panel status, tabel, menu
+  theme/app_theme.dart          Gaya lembar ujian (kertas, tinta, garis), Poppins + Inter
+assets/                         Model, suara alarm, foto demo, logo, font
+tools/                          Pembuat alarm, ikon, dan foto demo
+Training_Yolo/                  Notebook pelatihan dan model arsip
+test/, integration_test/        Uji unit/widget dan tangkapan layar
 ```
 
----
+### Privasi dan etika
 
-## 12. Izin (Permissions)
+- Gambar kamera tidak disimpan dan tidak dikirim. Yang disimpan hanya arah, keyakinan, waktu, dan durasi.
+- Arah kepala adalah **indikasi**, bukan bukti. Tinjau hasilnya bersama pengawas ujian.
+- Beri tahu peserta bahwa ujian dipantau kamera sebelum sesi dimulai.
 
-Dideklarasikan di `android/app/src/main/AndroidManifest.xml`:
+### Lisensi dan kredit
 
-- `CAMERA` — wajib, untuk deteksi.
-- `WAKE_LOCK` — agar layar tetap menyala selama pemantauan.
-
----
-
-## 13. Troubleshooting
-
-| Gejala | Solusi |
-|---|---|
-| Layar minta izin kamera terus | Buka Setelan Android > Aplikasi > izin kamera, aktifkan manual |
-| Deteksi tidak muncul | Pastikan pencahayaan cukup; turunkan "Ambang keyakinan" di Pengaturan |
-| Status berkedip-kedip | Naikkan "Frame stabil" di Pengaturan |
-| Alarm berbunyi terlalu sering | Naikkan "Jeda antar peringatan" |
-| Tidak ada suara | Pastikan "Suara alarm" aktif dan volume media tidak senyap |
-| FPS rendah | GPU delegate sudah aktif; pakai perangkat lebih baru atau turunkan resolusi |
-| Lupa PIN pengajar | Hapus data aplikasi via Setelan Android > Aplikasi > Penyimpanan > Hapus data (riwayat & PIN ikut terhapus), lalu buat PIN baru |
-| `flutter pub get` gagal | Cek koneksi internet & versi Flutter (`flutter doctor`) |
+- Kode aplikasi: **AGPL-3.0** ([LICENSE](LICENSE)). Lisensi ini dipakai karena model dilatih
+  dengan Ultralytics dan aplikasi memakai plugin `ultralytics_yolo`, keduanya AGPL-3.0.
+- Model YOLOv12n dilatih oleh Khairuramdhani dan Naufal Arya Pradipta.
+- Foto wajah dummy: orang fiktif buatan AI (Google Gemini) oleh pemilik proyek; diperbesar dengan
+  [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) (BSD-3-Clause).
+- Font Poppins dan Inter: SIL Open Font License 1.1 (lihat `assets/fonts/`).
+- Logo dan ikon dibuat sendiri dengan [`tools/make_icon.py`](tools/make_icon.py).
 
 ---
 
-## 14. Kredit
+## English
 
-- **Model YOLO**: dilatih oleh Khairuramdhani dan Naufal Arya Pradipta (YOLOv12n).
-- **Aplikasi**: dibangun dengan Flutter, `ultralytics_yolo`, `audioplayers`,
-  `shared_preferences`, dan `wakelock_plus`.
+### About
+
+CERDAS (Cheating Examination Recognition & Detection) watches the examinee's head
+direction through the front camera. A YOLOv12n model recognises five classes:
+`depan` (facing forward) and `atas`, `bawah`, `kiri`, `kanan` (looking up, down,
+left, right). When a look-away lasts longer than the teacher's limit, the app
+sounds an alarm, vibrates, and logs the incident. Inference runs on the device.
+
+### Highlights
+
+- **Real-time detection** with LiteRT on the GPU when available.
+- **Exam sessions** started by the teacher with a PIN and a planned duration; they end automatically.
+- **Session rules**: the back button is locked, leaving the app and a second face are logged,
+  switching cameras needs the PIN, and the teacher unlock expires after 60 seconds.
+- **Standby mode** outside a session: detection is shown for positioning, with no alarms or logs.
+- **Face oval** guide in the centre, a 90-second timeline, and a minimum look-away rule.
+- **Demo mode** that runs the real model on five dummy faces, with no camera needed.
+- **History** of sessions and incidents with CSV export.
+
+### Performance
+
+The model itself is light: 320 px input, about 9 ms per frame on a desktop CPU.
+The old app was slow because of its pipeline:
+- The plugin round-tripped every frame through JPEG; it is now version 0.6.15 with RGBA frames and LiteRT 2.x.
+- The whole screen rebuilt on every frame; detections now go through `ProctorEngine` and
+  `ValueNotifier`s, so the UI only updates when the state changes.
+- The camera is paused while other screens are open.
+
+Actual FPS depends on the device and is capped by the camera frame rate, usually 30 fps.
+
+### Run
+
+```bash
+flutter pub get
+flutter run
+flutter test
+flutter build apk --release --split-per-abi
+```
+
+Android only for now (minSdk 24). Screenshots are generated with
+`flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screenshots_test.dart`.
+
+### Privacy
+
+Camera frames are never stored or uploaded; only direction, confidence, time, and
+duration are kept. Head direction is a signal, not proof, so review incidents with
+the exam supervisor.
+
+### License
+
+AGPL-3.0, because the model was trained with Ultralytics and the app uses the
+`ultralytics_yolo` plugin, both AGPL-3.0. The demo faces are fictional people generated
+with Google Gemini and upscaled with Real-ESRGAN (BSD-3-Clause). Poppins and Inter are under the SIL OFL 1.1.
