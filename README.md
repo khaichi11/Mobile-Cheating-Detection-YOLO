@@ -56,7 +56,8 @@ kejadian tersebut. Seluruh inferensi berjalan di perangkat tanpa memerlukan inte
 
 Pembukanya bertema kamera pengawas. Di layar gelap, sapaan "Halo!" diketik huruf demi huruf, lalu empat sudut bidik
 bergerak dari tepi layar dan mengunci di tengah, dan garis pindai menyapu ke bawah sehingga layar berubah terang. Di
-dalam bidikan, sebuah wajah sesekali menoleh: sudutnya hijau saat wajah menghadap depan dan jingga saat menoleh,
+dalam bidikan, ilustrasi seorang peserta sesekali menoleh: sudutnya hijau saat wajah menghadap depan dan jingga saat
+menoleh,
 seperti yang dideteksi aplikasi. Ketuk sisi kiri atau kanan layar untuk membuat wajah itu menoleh. Sejak versi ini,
 PIN pengajar terkunci sementara setelah lima kali salah, makin lama bila diulang, sehingga PIN tidak bisa ditebak satu
 per satu selama ujian.
@@ -266,7 +267,8 @@ an alarm, vibrates, and records the incident. All inference runs on the device w
 
 The opening follows a proctoring camera theme. On a dark screen the greeting "Halo!" is typed letter by letter, then
 four viewfinder corners move in from the screen edges and lock in the centre while a scan line sweeps down and turns
-the screen light. Inside the viewfinder an illustrated examinee turns now and then: the corners are green when it faces forward and
+the screen light. Inside the viewfinder an illustrated examinee turns now and then: the corners are green when it
+faces forward and
 orange when it looks away, just as the app detects. Tapping the left or right side of the screen makes the face turn
 that way. The teacher PIN prompt now locks for a while after five wrong attempts, for longer each time, so the PIN
 cannot be guessed one by one during an exam.
