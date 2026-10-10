@@ -114,10 +114,19 @@ class TeacherGate {
                 onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
             FilledButton(
               onPressed: () {
-                if (pin.text.trim() == s.settings.teacherPin) {
+                final wait = s.pinLockRemaining();
+                if (wait > Duration.zero) {
+                  setState(() => error = 'Terlalu banyak PIN salah. Coba lagi dalam ${wait.inSeconds + 1} detik.');
+                } else if (pin.text.trim() == s.settings.teacherPin) {
+                  s.registerPinSuccess();
                   Navigator.pop(ctx, true);
                 } else {
-                  setState(() => error = 'PIN salah.');
+                  s.registerPinFailure();
+                  final locked = s.pinLockRemaining();
+                  pin.clear();
+                  setState(() => error = locked > Duration.zero
+                      ? 'PIN salah 5 kali. Coba lagi dalam ${locked.inSeconds} detik.'
+                      : 'PIN salah.');
                 }
               },
               child: const Text('Buka'),

@@ -28,6 +28,35 @@ class AppServices {
 
   void lockTeacher() => teacherUnlockedUntil = null;
 
+  /// Percobaan PIN yang salah berturut-turut. Setiap lima kali salah, pintu PIN
+  /// dikunci sementara (30 detik, lalu dua kali lipat sampai 5 menit) supaya PIN
+  /// 4 digit tidak bisa ditebak satu per satu oleh peserta selama ujian.
+  int pinFailures = 0;
+  DateTime? pinLockedUntil;
+
+  static const Duration _firstPinLock = Duration(seconds: 30);
+  static const Duration _maxPinLock = Duration(minutes: 5);
+
+  Duration pinLockRemaining([DateTime? now]) {
+    final until = pinLockedUntil;
+    if (until == null) return Duration.zero;
+    final left = until.difference(now ?? DateTime.now());
+    return left.isNegative ? Duration.zero : left;
+  }
+
+  void registerPinFailure([DateTime? now]) {
+    pinFailures++;
+    if (pinFailures % 5 != 0) return;
+    final round = pinFailures ~/ 5 - 1;
+    final lock = _firstPinLock * (1 << round.clamp(0, 10));
+    pinLockedUntil = (now ?? DateTime.now()).add(lock > _maxPinLock ? _maxPinLock : lock);
+  }
+
+  void registerPinSuccess() {
+    pinFailures = 0;
+    pinLockedUntil = null;
+  }
+
   AppServices({
     required this.settings,
     required this.log,
