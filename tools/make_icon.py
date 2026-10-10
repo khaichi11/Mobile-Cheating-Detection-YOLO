@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Buat logo dan ikon aplikasi CERDAS (gambar sendiri, tanpa aset luar).
 
-Tanda: monogram huruf C berupa busur tebal berwarna kapur. Titik hijau di tengahnya berarti peserta menghadap depan
-(fokus), sedangkan tanda panah jingga di bukaan huruf C berarti kepala menoleh keluar, yaitu indikasi yang dicatat
-aplikasi. Warna sama dengan lib/theme/app_theme.dart.
+Tanda: burung hantu geometris, lambang cerdas sekaligus pengawas yang selalu waspada. Kedua matanya digambar sebagai
+kotak deteksi dengan sudut bidik, seperti kotak keluaran YOLO di aplikasi, dan paruhnya jingga seperti warna
+peringatan saat peserta menoleh. Warna sama dengan lib/theme/app_theme.dart.
 Pakai (dari akar repo): python3 tools/make_icon.py
 """
 
 import json
-import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -27,22 +26,35 @@ def draw_mark(img, s, ox=0.0, oy=0.0):
     def p(x, y):
         return (ox + x * s, oy + y * s)
 
-    cx, cy, r, w = 0.48, 0.5, 0.29, 0.11
-    # huruf C: busur tebal yang terbuka ke kanan, ujungnya membulat
-    gap = 52  # derajat bukaan di kanan
-    d.arc((p(cx - r, cy - r), p(cx + r, cy + r)), gap, 360 - gap, fill=CHALK, width=round(w * s))
-    for ang in (gap, -gap):
-        ex = cx + (r - w / 2) * math.cos(math.radians(ang))
-        ey = cy + (r - w / 2) * math.sin(math.radians(ang))
-        d.ellipse((p(ex - w / 2, ey - w / 2), p(ex + w / 2, ey + w / 2)), fill=CHALK)
-    # titik fokus di tengah
-    f = 0.085
-    d.ellipse((p(cx - f, cy - f), p(cx + f, cy + f)), fill=SAFE)
-    # panah toleh di bukaan huruf C
-    t = 0.05
-    d.line([p(0.72, cy - 0.085), p(0.81, cy), p(0.72, cy + 0.085)], fill=TURN, width=round(t * s), joint="curve")
-    for x, y in ((0.72, cy - 0.085), (0.81, cy), (0.72, cy + 0.085)):
-        d.ellipse((p(x - t / 2, y - t / 2), p(x + t / 2, y + t / 2)), fill=TURN)
+    # kepala bulat dengan dua jumbai bulu yang miring keluar
+    head = [
+        p(0.21, 0.36), p(0.25, 0.17), p(0.37, 0.29), p(0.63, 0.29), p(0.75, 0.17), p(0.79, 0.36),
+        p(0.81, 0.56), p(0.76, 0.73), p(0.64, 0.83), p(0.50, 0.87), p(0.36, 0.83), p(0.24, 0.73), p(0.19, 0.56),
+    ]
+    d.polygon(head, fill=CHALK)
+    # piringan wajah: dua lingkaran sedikit lebih gelap di belakang mata
+    disc = (217, 211, 198)
+    for cx in (0.375, 0.625):
+        d.ellipse((p(cx - 0.155, 0.47 - 0.155), p(cx + 0.155, 0.47 + 0.155)), fill=disc)
+    # bulu dada: tiga lekuk kecil
+    fw = max(1, round(0.018 * s))
+    for (x, y) in ((0.42, 0.76), (0.58, 0.76), (0.50, 0.80)):
+        d.line([p(x - 0.035, y - 0.02), p(x, y + 0.012), p(x + 0.035, y - 0.02)], fill=disc, width=fw, joint="curve")
+    # mata: kotak deteksi dengan sudut bidik hijau, pupil gelap di tengah
+    w = max(1, round(0.026 * s))
+    for cx in (0.375, 0.625):
+        cy, half, arm = 0.47, 0.105, 0.045
+        x0, y0, x1, y1 = cx - half, cy - half, cx + half, cy + half
+        d.rounded_rectangle((p(x0, y0), p(x1, y1)), radius=0.03 * s, fill=GRAPHITE)
+        for (ax, ay, sx, sy) in [(x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)]:
+            ix, iy = ax + sx * 0.022, ay + sy * 0.022
+            d.line([p(ix, iy + sy * arm), p(ix, iy), p(ix + sx * arm, iy)], fill=SAFE, width=w)
+        r = 0.035
+        d.ellipse((p(cx - r, cy - r), p(cx + r, cy + r)), fill=SAFE)
+        hl = 0.012
+        d.ellipse((p(cx + 0.008 - hl, cy - 0.012 - hl), p(cx + 0.008 + hl, cy - 0.012 + hl)), fill=CHALK)
+    # paruh jingga
+    d.polygon([p(0.47, 0.60), p(0.53, 0.60), p(0.50, 0.68)], fill=TURN)
 
 
 def render(size, *, rounded, background=True, scale=1.0):
