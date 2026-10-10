@@ -7,6 +7,7 @@ import 'services/detection_log.dart';
 import 'services/session_store.dart';
 import 'services/settings_service.dart';
 import 'theme/app_theme.dart';
+import 'widgets/proctor_intro.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,17 +24,28 @@ Future<void> main() async {
   ));
 }
 
-class CheatDetectionApp extends StatelessWidget {
+class CheatDetectionApp extends StatefulWidget {
   final AppServices services;
   final bool startInDemo;
   final bool enableCamera;
+
+  /// Tampilkan pembuka saat aplikasi dibuka (dimatikan di uji widget).
+  final bool intro;
 
   const CheatDetectionApp({
     super.key,
     required this.services,
     this.startInDemo = false,
     this.enableCamera = true,
+    this.intro = true,
   });
+
+  @override
+  State<CheatDetectionApp> createState() => _CheatDetectionAppState();
+}
+
+class _CheatDetectionAppState extends State<CheatDetectionApp> {
+  late bool _introDone = !widget.intro;
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +53,15 @@ class CheatDetectionApp extends StatelessWidget {
       title: 'CERDAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: DetectionScreen(
-        services: services,
-        startInDemo: startInDemo,
-        enableCamera: enableCamera,
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        child: _introDone
+            ? DetectionScreen(
+                services: widget.services,
+                startInDemo: widget.startInDemo,
+                enableCamera: widget.enableCamera,
+              )
+            : ProctorIntro(onDone: () => setState(() => _introDone = true)),
       ),
     );
   }

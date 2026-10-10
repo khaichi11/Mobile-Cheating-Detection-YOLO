@@ -62,7 +62,7 @@ void main() {
   testWidgets('layar deteksi tampil dan sesi bisa dimulai', (tester) async {
     _phone(tester);
     final s = await _services();
-    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false));
+    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false, intro: false));
     await tester.pump();
 
     expect(find.text('Siaga · cek posisi kamera'), findsOneWidget);
@@ -90,7 +90,7 @@ void main() {
     final s = await _services();
     s.settings.setTeacherPin('2468');
     s.unlockTeacher();
-    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false));
+    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false, intro: false));
     await tester.pump();
     await tester.tap(find.text('Mulai sesi ujian'));
     await tester.pumpAndSettle();
@@ -121,7 +121,7 @@ void main() {
   testWidgets('drawer menampilkan menu dan status kunci', (tester) async {
     _phone(tester);
     final s = await _services();
-    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false));
+    await tester.pumpWidget(CheatDetectionApp(services: s, enableCamera: false, intro: false));
     await tester.pump();
     await tester.tap(find.byTooltip('Menu'));
     await tester.pumpAndSettle();

@@ -65,7 +65,7 @@ void main() {
       await tap(find.text(create ? 'Simpan' : 'Buka'));
     }
 
-    await tester.pumpWidget(CheatDetectionApp(services: services, startInDemo: true));
+    await tester.pumpWidget(CheatDetectionApp(services: services, startInDemo: true, intro: false));
     await waitFor(find.text('Fokus ke depan'));
     await settle(10);
     await shoot('01-siaga');

@@ -14,6 +14,10 @@
   <a href="#bahasa-indonesia">Bahasa Indonesia</a> · <a href="#english">English</a>
 </p>
 
+<p align="center">
+  <img src="docs/images/demo.gif" width="300" alt="Demo CERDAS: pembuka bertema kamera pengawas, mode demo, membuat PIN pengajar, sesi berjalan dengan peringatan menoleh, dan ringkasan sesi">
+</p>
+
 <table>
   <tr>
     <td align="center" width="25%"><img src="docs/images/framed/05-sesi-fokus.png" width="180" alt="Sesi berjalan"><br><sub>Sesi berjalan</sub></td>
@@ -49,6 +53,13 @@ CERDAS memantau arah kepala peserta ujian melalui kamera depan. Model YOLOv12n m
 sebagai tanda fokus serta **atas, bawah, kiri,** dan **kanan** sebagai indikasi menoleh. Apabila peserta menoleh lebih
 lama daripada batas yang ditetapkan pengajar, aplikasi membunyikan alarm, menggetarkan perangkat, dan mencatat
 kejadian tersebut. Seluruh inferensi berjalan di perangkat tanpa memerlukan internet.
+
+Pembukanya bertema kamera pengawas. Di layar gelap, sapaan "Halo!" diketik huruf demi huruf, lalu empat sudut bidik
+bergerak dari tepi layar dan mengunci di tengah, dan garis pindai menyapu ke bawah sehingga layar berubah terang. Di
+dalam bidikan, sebuah wajah sesekali menoleh: sudutnya hijau saat wajah menghadap depan dan jingga saat menoleh,
+seperti yang dideteksi aplikasi. Ketuk sisi kiri atau kanan layar untuk membuat wajah itu menoleh. Sejak versi ini,
+PIN pengajar terkunci sementara setelah lima kali salah, makin lama bila diulang, sehingga PIN tidak bisa ditebak satu
+per satu selama ujian.
 
 ### Fitur
 
@@ -174,11 +185,19 @@ flutter test
 flutter build apk --release --split-per-abi
 ```
 
-`flutter test` menjalankan 21 uji unit dan widget, sedangkan perintah terakhir menghasilkan APK terpisah untuk setiap
+`flutter test` menjalankan 29 uji unit dan widget, sedangkan perintah terakhir menghasilkan APK terpisah untuk setiap
 arsitektur. Model yang dipakai adalah [`assets/models/gaze_yolo12n_320.tflite`](assets/models/); kelas dan ukuran
 masukannya dibaca dari metadata model. Model lama yang tidak lagi dipakai disimpan di
 [`Training_Yolo/models/`](Training_Yolo/models/) bersama notebook pelatihan. Saat ini aplikasi hanya mendukung
 Android karena versi iOS memerlukan model Core ML.
+
+GIF demo di bagian atas dirender di laptop tanpa emulator: `test/demo_render_test.dart` menggambar setiap layar dan
+menyimpan bingkainya, lalu `tool/render_gif.py` menyusunnya ke dalam bingkai ponsel lengkap dengan bilah status.
+
+```bash
+DEMO_FRAMES=build/frames flutter test test/demo_render_test.dart
+python3 tool/render_gif.py build/frames docs/images/demo.gif
+```
 
 ### Tangkapan layar
 
@@ -245,6 +264,13 @@ camera. A YOLOv12n model recognises five classes: `depan` for facing forward, an
 for looking up, down, left, and right. When a look-away lasts longer than the limit set by the teacher, the app sounds
 an alarm, vibrates, and records the incident. All inference runs on the device without an internet connection.
 
+The opening follows a proctoring camera theme. On a dark screen the greeting "Halo!" is typed letter by letter, then
+four viewfinder corners move in from the screen edges and lock in the centre while a scan line sweeps down and turns
+the screen light. Inside the viewfinder a face turns now and then: the corners are green when it faces forward and
+orange when it looks away, just as the app detects. Tapping the left or right side of the screen makes the face turn
+that way. The teacher PIN prompt now locks for a while after five wrong attempts, for longer each time, so the PIN
+cannot be guessed one by one during an exam.
+
 ### Highlights
 
 Detection runs in real time with LiteRT and uses the GPU when one is available. A face oval in the centre of the
@@ -280,6 +306,14 @@ The app currently supports Android only, with minSdk 24. Screenshots are generat
 `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/screenshots_test.dart`, and the
 phone frames in this README are drawn with the `phone_frame.py` script from the
 [MEIRA](https://github.com/khaichi11/MEIRA) repository (Apache-2.0).
+
+The demo GIF at the top is rendered on a laptop without an emulator: `test/demo_render_test.dart` draws every screen
+and saves the frames, and `tool/render_gif.py` then places them in a phone frame with a status bar.
+
+```bash
+DEMO_FRAMES=build/frames flutter test test/demo_render_test.dart
+python3 tool/render_gif.py build/frames docs/images/demo.gif
+```
 
 ### Privacy
 
