@@ -84,25 +84,31 @@ def system_bars(im: Image.Image, top: int, bottom: int, clock: str = "09.30") ->
             cy, size = bh * .55, bh * .42
             font = _font(round(size * 1.3))
             d.text((w * k * .085, cy), clock, font=font, fill=ink, anchor="lm")
-            x = w * k * (1 - .085)
+            # ikon disusun dari kanan ke kiri dengan lebar dan jarak yang tetap supaya tidak saling menumpuk
+            right = w * k * (1 - .085)
+            stroke = max(1, round(size * .13))
             # baterai: badan, isi, dan tonjolan kecil di kanan
             bw_, bht = size * 1.9, size * .95
-            d.rounded_rectangle((x - bw_, cy - bht / 2, x, cy + bht / 2), radius=bht * .28, outline=ink, width=max(1, round(k * .9)))
-            d.rounded_rectangle((x + k * .6, cy - bht * .22, x + k * 3, cy + bht * .22), radius=k * .6, fill=ink)
-            pad = k * 1.4
-            d.rounded_rectangle((x - bw_ + pad, cy - bht / 2 + pad, x - bw_ + pad + (bw_ - 2 * pad) * .8, cy + bht / 2 - pad), radius=bht * .15, fill=ink)
-            x -= bw_ + size * .55
-            # WiFi: kipas tiga busur dengan pusat yang sama
-            wx, wy = x - size * .55, cy + size * .5
-            for r in (size * 1.0, size * .66):
-                d.arc((wx - r, wy - r, wx + r, wy + r), 225, 315, fill=ink, width=max(1, round(size * .14)))
-            r = size * .34
+            body = (right - bw_, cy - bht / 2, right, cy + bht / 2)
+            d.rounded_rectangle(body, radius=bht * .28, outline=ink, width=stroke)
+            d.rounded_rectangle((right + size * .08, cy - bht * .22, right + size * .26, cy + bht * .22), radius=size * .08, fill=ink)
+            pad = stroke + size * .1
+            d.rounded_rectangle((body[0] + pad, body[1] + pad, body[0] + pad + (bw_ - 2 * pad) * .8, body[3] - pad), radius=bht * .12, fill=ink)
+            right = body[0] - size * .55
+            # WiFi: kipas tiga busur dengan pusat yang sama, lebar 2 x jari-jari terbesar
+            r0 = size * .95
+            wx, wy = right - r0, cy + size * .5
+            for r in (r0, r0 * .64):
+                d.arc((wx - r, wy - r, wx + r, wy + r), 225, 315, fill=ink, width=stroke)
+            r = r0 * .3
             d.pieslice((wx - r, wy - r, wx + r, wy + r), 225, 315, fill=ink)
-            x -= size * 1.5
-            # sinyal: empat batang naik
-            for i in range(4):
-                bx = x + i * size * .32
-                d.rounded_rectangle((bx, cy + size * .45 - size * (.3 + .23 * i), bx + size * .2, cy + size * .45), radius=k * .4, fill=ink)
+            right = wx - r0 - size * .45
+            # sinyal: empat batang naik, lebar total 1,1 x ukuran ikon
+            bar_w, gap = size * .2, size * .1
+            left = right - 4 * bar_w - 3 * gap
+            for n in range(4):
+                bx = left + n * (bar_w + gap)
+                d.rounded_rectangle((bx, cy + size * .45 - size * (.3 + .23 * n), bx + bar_w, cy + size * .45), radius=size * .05, fill=ink)
         out.paste(big.resize((w, y1 - y0), Image.LANCZOS), (0, y0))
     return out
 
