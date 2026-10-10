@@ -236,7 +236,8 @@ class _ProctorIntroState extends State<ProctorIntro> with SingleTickerProviderSt
               ),
               const SizedBox(height: 4),
               const Text(
-                'Pengawas ujian di perangkat',
+                'Cheating Examination Recognition & Detection · YOLO-based AI System',
+                textAlign: TextAlign.center,
                 style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 18),

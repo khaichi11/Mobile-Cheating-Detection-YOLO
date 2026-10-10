@@ -1,22 +1,53 @@
 #!/usr/bin/env python3
-"""Buat logo dan ikon aplikasi Deteksi Mencontek (gambar sendiri, tanpa aset luar).
+"""Buat logo dan ikon aplikasi CERDAS (gambar sendiri, tanpa aset luar).
 
-Tanda: bingkai sudut (viewfinder) berwarna kapur dengan mata di tengah,
-iris hijau "fokus". Warna sama dengan lib/theme/app_theme.dart.
+Tanda: ilustrasi seorang peserta ujian yang menghadap depan, dibingkai empat sudut bidik hijau "fokus", di atas latar
+kertas. Gambarnya sama dengan wajah pada pembuka aplikasi (lib/widgets/proctor_intro.dart): rambut pendek dengan
+poni menyamping, dua mata, dan kemeja berkerah. Warna sama dengan lib/theme/app_theme.dart.
 Pakai (dari akar repo): python3 tools/make_icon.py
 """
 
 import json
-import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
-GRAPHITE = (15, 18, 22)
-CHALK = (237, 234, 227)
-SAFE = (79, 178, 134)
+PAPER = (244, 242, 235)
+SAFE = (35, 128, 79)
+SKIN = (240, 194, 154)
+SKIN_SHADE = (226, 169, 126)
+EAR = (230, 178, 134)
+HAIR = (42, 36, 32)
+SHIRT = (52, 85, 139)
+INK = (30, 30, 30)
 SS = 4
+
+
+def _cubic(p0, p1, p2, p3, n=24):
+    return [
+        (
+            (1 - t) ** 3 * p0[0] + 3 * (1 - t) ** 2 * t * p1[0] + 3 * (1 - t) * t ** 2 * p2[0] + t ** 3 * p3[0],
+            (1 - t) ** 3 * p0[1] + 3 * (1 - t) ** 2 * t * p1[1] + 3 * (1 - t) * t ** 2 * p2[1] + t ** 3 * p3[1],
+        )
+        for t in (i / n for i in range(n + 1))
+    ]
+
+
+def _quad(p0, p1, p2, n=16):
+    return [
+        ((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1])
+        for t in (i / n for i in range(n + 1))
+    ]
+
+
+def _round(d, a, b, r, fill):
+    """Persegi membulat yang tetap aman untuk ikon sangat kecil (jari-jari dibatasi ukuran kotak)."""
+    r = min(r, (b[0] - a[0]) / 2 - 1, (b[1] - a[1]) / 2 - 1)
+    if r < 1:
+        d.ellipse((a, b), fill=fill)
+    else:
+        d.rounded_rectangle((a, b), radius=r, fill=fill)
 
 
 def draw_mark(img, s, ox=0.0, oy=0.0):
@@ -25,35 +56,49 @@ def draw_mark(img, s, ox=0.0, oy=0.0):
     def p(x, y):
         return (ox + x * s, oy + y * s)
 
-    w = max(1, round(0.055 * s))
-    # Bingkai sudut.
-    a, b, L = 0.18, 0.82, 0.17
+    # sudut bidik
+    w = max(1, round(0.05 * s))
+    a, b, L = 0.15, 0.85, 0.15
     for (cx, cy, sx, sy) in [(a, a, 1, 1), (b, a, -1, 1), (a, b, 1, -1), (b, b, -1, -1)]:
-        d.line([p(cx, cy + sy * L), p(cx, cy), p(cx + sx * L, cy)], fill=CHALK, width=w, joint="curve")
+        d.line([p(cx, cy + sy * L), p(cx, cy), p(cx + sx * L, cy)], fill=SAFE, width=w, joint="curve")
         r = w / 2
         for (x, y) in [(cx, cy + sy * L), (cx + sx * L, cy), (cx, cy)]:
             px, py = p(x, y)
-            d.ellipse((px - r, py - r, px + r, py + r), fill=CHALK)
-    # Mata (dua busur membentuk almond).
-    pts_top, pts_bot = [], []
-    for i in range(41):
-        t = i / 40
-        x = 0.28 + 0.44 * t
-        h = 0.15 * math.sin(math.pi * t)
-        pts_top.append(p(x, 0.5 - h))
-        pts_bot.append(p(x, 0.5 + h))
-    d.polygon(pts_top + pts_bot[::-1], fill=CHALK)
-    # Iris dan pupil.
-    for (r, col) in [(0.105, SAFE), (0.045, GRAPHITE)]:
-        d.ellipse((p(0.5 - r, 0.5 - r), p(0.5 + r, 0.5 + r)), fill=col)
-    hl = 0.018
-    d.ellipse((p(0.535 - hl, 0.465 - hl), p(0.535 + hl, 0.465 + hl)), fill=CHALK)
+            d.ellipse((px - r, py - r, px + r, py + r), fill=SAFE)
+
+    # peserta: satuan sama dengan gambar di pembuka, dipusatkan dan diperkecil
+    u, cx0, cy0 = 0.0031, 0.5, 0.47
+
+    def q(x, y):
+        return p(cx0 + x * u, cy0 + y * u)
+
+    shirt = [q(-78, 104), q(-74, 74)] + [q(*pt) for pt in _quad((-70, 56), (-70, 56), (-44, 50))] + [q(44, 50)]
+    shirt += [q(*pt) for pt in _quad((44, 50), (70, 56), (74, 74))] + [q(78, 104)]
+    d.polygon(shirt, fill=SHIRT)
+    d.polygon([q(-20, 50), q(0, 72), q(20, 50)], fill=PAPER)
+    _round(d, q(-13, 30), q(13, 56), 6 * u * s, SKIN_SHADE)
+    for side in (-1, 1):
+        ex = side * 44
+        d.ellipse((q(ex - 7, -8), q(ex + 7, 12)), fill=EAR)
+    _round(d, q(-44, -52), q(44, 48), 42 * u * s, SKIN)
+    hair = (
+        _cubic((-46, 4), (-52, -46), (-22, -66), (6, -64))
+        + _cubic((6, -64), (40, -62), (54, -38), (46, 2))
+        + _cubic((46, 2), (42, -14), (34, -24), (22, -28))
+        + _cubic((22, -28), (4, -16), (-22, -18), (-40, -14))
+        + _cubic((-40, -14), (-42, -6), (-44, 0), (-46, 4))
+    )
+    d.polygon([q(*pt) for pt in hair], fill=HAIR)
+    for side in (-1, 1):
+        ex = side * 17
+        d.ellipse((q(ex - 4.5, -2), q(ex + 4.5, 10)), fill=INK)
+        d.ellipse((q(ex + 0.2, -0.8), q(ex + 3.4, 2.4)), fill=(255, 255, 255))
 
 
 def render(size, *, rounded, background=True, scale=1.0):
     big = size * SS
     if background:
-        img = Image.new("RGBA", (big, big), GRAPHITE + (255,))
+        img = Image.new("RGBA", (big, big), PAPER + (255,))
         if rounded:
             mask = Image.new("L", (big, big), 0)
             ImageDraw.Draw(mask).rounded_rectangle((0, 0, big - 1, big - 1), radius=0.24 * big, fill=255)
@@ -85,8 +130,8 @@ def android():
     (res / "values").mkdir(exist_ok=True)
     (res / "values/colors.xml").write_text(
         '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
-        '    <color name="ic_launcher_background">#0F1216</color>\n'
-        '    <color name="launch_background">#0F1216</color>\n'
+        '    <color name="ic_launcher_background">#F4F2EB</color>\n'
+        '    <color name="launch_background">#F4F2EB</color>\n'
         "</resources>\n")
     nodpi = res / "drawable-nodpi"
     nodpi.mkdir(exist_ok=True)
@@ -133,7 +178,7 @@ def web():
 def brand():
     out = ROOT / "assets/brand"
     out.mkdir(parents=True, exist_ok=True)
-    render(256, rounded=False).save(out / "logo.png")
+    render(256, rounded=True).save(out / "logo.png")
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 <h1 align="center">CERDAS</h1>
 
 <p align="center">
-  <b>Cheating Examination Recognition &amp; Detection · YOLO-based</b><br>
+  <b>Cheating Examination Recognition &amp; Detection · YOLO-based AI System</b><br>
   Deteksi indikasi mencontek berdasarkan arah kepala, langsung di perangkat Android.<br>
   <i>On-device exam proctoring that reads head direction with YOLO.</i>
 </p>
@@ -260,7 +260,8 @@ Peserta juga perlu diberi tahu bahwa ujian dipantau dengan kamera sebelum sesi d
 
 ### About
 
-CERDAS (Cheating Examination Recognition & Detection) monitors the examinee's head direction through the front
+CERDAS (Cheating Examination Recognition & Detection), a YOLO-based AI system, monitors the examinee's head direction
+through the front
 camera. A YOLOv12n model recognises five classes: `depan` for facing forward, and `atas`, `bawah`, `kiri`, and `kanan`
 for looking up, down, left, and right. When a look-away lasts longer than the limit set by the teacher, the app sounds
 an alarm, vibrates, and records the incident. All inference runs on the device without an internet connection.
