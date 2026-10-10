@@ -10,7 +10,7 @@ import '../theme/app_theme.dart';
 /// 1. di layar gelap, "Halo!" dan "Selamat datang di CERDAS" diketik huruf demi huruf;
 /// 2. empat sudut bidik bergerak dari tepi layar ke tengah dan mengunci, lalu garis pindai menyapu ke bawah
 ///    sehingga layar berubah terang di belakangnya;
-/// 3. di dalam bidikan, sebuah wajah menghadap depan (sudut hijau, "Fokus") dan sesekali menoleh (sudut jingga,
+/// 3. di dalam bidikan, ilustrasi seorang peserta menghadap depan (sudut hijau, "Fokus") dan sesekali menoleh (sudut jingga,
 ///    "Menoleh"), seperti yang dideteksi aplikasi. Ketuk layar di kiri atau kanan wajah: wajah menoleh ke arah itu.
 /// Setelah [ready] selesai, semuanya memudar dan [onDone] dipanggil.
 class ProctorIntro extends StatefulWidget {
@@ -95,45 +95,45 @@ class _ProctorIntroState extends State<ProctorIntro> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.background,
-        body: LayoutBuilder(
-          builder: (context, box) {
-            final size = box.biggest;
-            final center = Offset(size.width / 2, math.min(size.height * .4, 360));
-            final sweep = _h < 1 ? 0.0 : _seg(_e, .35, .85);
-            final leave = Curves.easeInCubic.transform(_x);
-            return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: sweep < .5 ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapDown: (d) => _tap(d, size),
-                child: Opacity(
-                  opacity: 1 - leave,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _ScanPainter(
-                            sweep: sweep,
-                            lock: _h < 1 ? 0 : Curves.easeInOutCubic.transform(_seg(_e, 0, .35)),
-                            center: center,
-                            turn: _turn,
-                            face: Curves.easeOutCubic.transform(_seg(_e, .55, .85)),
-                            blink: (_clock % 3.1) < .12,
-                            clock: _clock,
-                          ),
-                        ),
+    backgroundColor: AppColors.background,
+    body: LayoutBuilder(
+      builder: (context, box) {
+        final size = box.biggest;
+        final center = Offset(size.width / 2, math.min(size.height * .4, 360));
+        final sweep = _h < 1 ? 0.0 : _seg(_e, .35, .85);
+        final leave = Curves.easeInCubic.transform(_x);
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: sweep < .5 ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (d) => _tap(d, size),
+            child: Opacity(
+              opacity: 1 - leave,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _ScanPainter(
+                        sweep: sweep,
+                        lock: _h < 1 ? 0 : Curves.easeInOutCubic.transform(_seg(_e, 0, .35)),
+                        center: center,
+                        turn: _turn,
+                        face: Curves.easeOutCubic.transform(_seg(_e, .55, .85)),
+                        blink: (_clock % 3.1) < .12,
+                        clock: _clock,
                       ),
-                      if (_h < 1) ..._typing(center),
-                      if (_h == 1) _title(center),
-                    ],
+                    ),
                   ),
-                ),
+                  if (_h < 1) ..._typing(center),
+                  if (_h == 1) _title(center),
+                ],
               ),
-            );
-          },
-        ),
-      );
+            ),
+          ),
+        );
+      },
+    ),
+  );
 
   /// "Halo!" dan sambutan diketik satu per satu dengan kursor berkedip.
   List<Widget> _typing(Offset center) {
@@ -162,7 +162,12 @@ class _ProctorIntroState extends State<ProctorIntro> with SingleTickerProviderSt
                     ),
                   ],
                 ),
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 52, fontWeight: FontWeight.w700, color: Colors.white),
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 52,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 6),
               Text.rich(
@@ -175,7 +180,12 @@ class _ProctorIntroState extends State<ProctorIntro> with SingleTickerProviderSt
                     ),
                   ],
                 ),
-                style: TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: .9)),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: .9),
+                ),
               ),
             ],
           ),
@@ -216,7 +226,13 @@ class _ProctorIntroState extends State<ProctorIntro> with SingleTickerProviderSt
               const SizedBox(height: 14),
               const Text(
                 'CERDAS',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 2, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -274,8 +290,11 @@ class _ScanPainter extends CustomPainter {
     canvas.drawRect(
       Rect.fromLTRB(0, line, w, h),
       Paint()
-        ..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _dark)
-            .createShader(Offset.zero & size),
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: _dark,
+        ).createShader(Offset.zero & size),
     );
     final focused = turn.abs() < .4;
     final accent = sweep == 0 ? Colors.white : (focused ? AppColors.safe : AppColors.danger);
@@ -295,7 +314,12 @@ class _ScanPainter extends CustomPainter {
       ..strokeWidth = 4.5
       ..strokeCap = StrokeCap.round;
     const arm = 34.0;
-    for (final (o, dx, dy) in [(rr.topLeft, 1, 1), (rr.topRight, -1, 1), (rr.bottomLeft, 1, -1), (rr.bottomRight, -1, -1)]) {
+    for (final (o, dx, dy) in [
+      (rr.topLeft, 1, 1),
+      (rr.topRight, -1, 1),
+      (rr.bottomLeft, 1, -1),
+      (rr.bottomRight, -1, -1),
+    ]) {
       canvas.drawLine(o, o + Offset(arm * dx, 0), corner);
       canvas.drawLine(o, o + Offset(0, arm * dy), corner);
     }
@@ -312,54 +336,102 @@ class _ScanPainter extends CustomPainter {
             colors: [AppColors.safe.withValues(alpha: 0), AppColors.safe.withValues(alpha: .35)],
           ).createShader(glow),
       );
-      canvas.drawLine(Offset(0, line), Offset(w, line), Paint()
-        ..color = AppColors.safe
-        ..strokeWidth = 2.5);
+      canvas.drawLine(
+        Offset(0, line),
+        Offset(w, line),
+        Paint()
+          ..color = AppColors.safe
+          ..strokeWidth = 2.5,
+      );
     }
   }
 
-  /// Wajah datar sederhana: kepala, rambut, mata, dan hidung yang bergeser saat menoleh.
+  /// Ilustrasi peserta bergaya datar: bahu berkerah, telinga, rambut pendek dengan poni menyamping, dan dua mata
+  /// (tanpa hidung dan mulut). Saat menoleh, kepala sedikit menyempit, mata dan poni bergeser ke arah toleh.
   void _face(Canvas canvas, double show) {
+    Paint fill(Color c) => Paint()
+      ..color = c.withValues(alpha: show)
+      ..isAntiAlias = true;
     canvas.save();
-    canvas.translate(center.dx, center.dy);
+    canvas.translate(center.dx, center.dy + 4);
     canvas.scale(.85 + .15 * show);
-    final skin = Paint()..color = const Color(0xFFE8B98F).withValues(alpha: show);
-    final hair = Paint()..color = const Color(0xFF2B2622).withValues(alpha: show);
-    final shirt = Paint()..color = const Color(0xFF3A5A8C).withValues(alpha: show);
-    // bahu dan kemeja
-    canvas.drawRRect(
-      RRect.fromRectAndCorners(const Rect.fromLTRB(-70, 58, 70, 104), topLeft: const Radius.circular(40), topRight: const Radius.circular(40)),
-      shirt,
+    final dx = turn * 16; // pergeseran wajah ke arah toleh
+    final squeeze = 1 - .1 * turn.abs();
+
+    // bahu dan kemeja dengan kerah
+    final shirt = Path()
+      ..moveTo(-78, 104)
+      ..lineTo(-74, 74)
+      ..quadraticBezierTo(-70, 56, -44, 50)
+      ..lineTo(44, 50)
+      ..quadraticBezierTo(70, 56, 74, 74)
+      ..lineTo(78, 104)
+      ..close();
+    canvas.drawPath(shirt, fill(const Color(0xFF34558B)));
+    canvas.drawPath(
+      Path()
+        ..moveTo(-20, 50)
+        ..lineTo(0, 72)
+        ..lineTo(20, 50)
+        ..close(),
+      fill(const Color(0xFFF4F2EB)),
     );
-    canvas.drawRect(const Rect.fromLTRB(-14, 40, 14, 64), skin);
-    // kepala menyempit sedikit saat menoleh
-    final squeeze = 1 - .12 * turn.abs();
-    canvas.drawOval(Rect.fromCenter(center: Offset(turn * 6, 0), width: 92 * squeeze, height: 108), skin);
-    canvas.drawArc(Rect.fromCenter(center: Offset(turn * 6, -12), width: 98 * squeeze, height: 92), math.pi, math.pi, true, hair);
-    // mata dan hidung bergeser ke arah toleh
-    final eyeY = 2.0, dx = turn * 22;
-    final eye = Paint()..color = const Color(0xFF1E1E1E).withValues(alpha: show);
-    for (final ex in const [-17.0, 17.0]) {
-      final x = ex * squeeze + dx;
-      if (blink) {
-        canvas.drawLine(Offset(x - 6, eyeY), Offset(x + 6, eyeY), eye..strokeWidth = 2.5);
-      } else {
-        canvas.drawCircle(Offset(x, eyeY), 5, eye);
-      }
+    // leher dengan bayangan dagu
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTRB(-13, 30, 13, 56), const Radius.circular(6)),
+      fill(const Color(0xFFE2A97E)),
+    );
+
+    // telinga, lalu kepala
+    final skin = fill(const Color(0xFFF0C29A));
+    for (final side in const [-1.0, 1.0]) {
+      final ex = side * 44 * squeeze + dx * .3;
+      canvas.drawOval(Rect.fromCenter(center: Offset(ex, 2), width: 14, height: 20), fill(const Color(0xFFE6B286)));
     }
-    canvas.drawLine(
-      Offset(dx * 1.15, 10),
-      Offset(dx * 1.15 + turn * 5, 22),
+    final head = Rect.fromCenter(center: Offset(dx * .4, -2), width: 88 * squeeze, height: 100);
+    canvas.drawRRect(RRect.fromRectAndRadius(head, const Radius.circular(42)), skin);
+
+    // rambut: tudung di atas kepala dan poni yang menyapu ke samping
+    final hx = dx * .4;
+    final hair = Path()
+      ..moveTo(hx - 46 * squeeze, 4)
+      ..cubicTo(hx - 52 * squeeze, -46, hx - 22, -66, hx + 6, -64)
+      ..cubicTo(hx + 40, -62, hx + 54 * squeeze, -38, hx + 46 * squeeze, 2)
+      ..cubicTo(hx + 42 * squeeze, -14, hx + 34, -24, hx + 22, -28)
+      ..cubicTo(hx + 4, -16, hx - 22, -18, hx - 40 * squeeze, -14)
+      ..cubicTo(hx - 42 * squeeze, -6, hx - 44 * squeeze, 0, hx - 46 * squeeze, 4)
+      ..close();
+    canvas.drawPath(hair, fill(const Color(0xFF2A2420)));
+    // kilau rambut tipis
+    canvas.drawPath(
+      Path()
+        ..moveTo(hx - 18, -54)
+        ..quadraticBezierTo(hx + 4, -60, hx + 24, -50),
       Paint()
-        ..color = const Color(0xFFC98E62).withValues(alpha: show)
+        ..color = Colors.white.withValues(alpha: .18 * show)
+        ..style = PaintingStyle.stroke
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
-    canvas.drawArc(Rect.fromCenter(center: Offset(dx, 30), width: 22, height: 10), .2, math.pi - .4, false, Paint()
-      ..color = const Color(0xFF9C5A3C).withValues(alpha: show)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round);
+
+    // mata: oval gelap dengan titik cahaya; berkedip sesekali
+    final eyeY = 4.0, ex = dx * 1.2;
+    for (final side in const [-1.0, 1.0]) {
+      final c = Offset(side * 17 * squeeze + ex, eyeY);
+      if (blink) {
+        canvas.drawLine(
+          c - const Offset(6, 0),
+          c + const Offset(6, 0),
+          Paint()
+            ..color = const Color(0xFF1E1E1E).withValues(alpha: show)
+            ..strokeWidth = 2.6
+            ..strokeCap = StrokeCap.round,
+        );
+      } else {
+        canvas.drawOval(Rect.fromCenter(center: c, width: 9, height: 12), fill(const Color(0xFF1E1E1E)));
+        canvas.drawCircle(c + const Offset(1.6, -2.4), 1.6, fill(Colors.white));
+      }
+    }
     canvas.restore();
   }
 
