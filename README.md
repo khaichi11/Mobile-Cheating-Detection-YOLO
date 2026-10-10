@@ -185,7 +185,7 @@ flutter test
 flutter build apk --release --split-per-abi
 ```
 
-`flutter test` menjalankan 29 uji unit dan widget, sedangkan perintah terakhir menghasilkan APK terpisah untuk setiap
+`flutter test` menjalankan 28 uji unit dan widget, sedangkan perintah terakhir menghasilkan APK terpisah untuk setiap
 arsitektur. Model yang dipakai adalah [`assets/models/gaze_yolo12n_320.tflite`](assets/models/); kelas dan ukuran
 masukannya dibaca dari metadata model. Model lama yang tidak lagi dipakai disimpan di
 [`Training_Yolo/models/`](Training_Yolo/models/) bersama notebook pelatihan. Saat ini aplikasi hanya mendukung
